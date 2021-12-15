@@ -1,0 +1,8 @@
+application:
+  braze:
+    transfer-rate: 50000
+    api-key: "dummy"
+    base-url: "https://rest.api.com/api0"
+    data-dir: "data/segment_0"
+    list-file-path: "files.txt"
+
