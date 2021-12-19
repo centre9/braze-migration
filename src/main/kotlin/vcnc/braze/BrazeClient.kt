@@ -47,8 +47,8 @@ class BrazeClient(
                 if (!it.isSuccessful()) {
                     logger.error("[Braze] ${it.message}")
                 }
-            }) { _ ->
-                throw Exception("Error on track")
+            }) { throwable ->
+                throwable?.let{ logger.error(it.message, it) }
             }
     }
 
