@@ -7,9 +7,9 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.min
 
 @Component
-class Converter {
-    private val MAX_OBJECT_COUNT = 75
-
+class Converter(
+    val properties: BrazeConfigProperties,
+    ) {
     fun convertUserEventListTolTrackParamsList(events: List<UserEvent>, id: String): List<TrackParams> {
         return events
             .map { convertUserEventToTrackParamsList(it, id) }
@@ -19,7 +19,7 @@ class Converter {
     private fun convertUserEventToTrackParamsList(event: UserEvent, id: String): List<TrackParams> {
         val first = LocalDateTime.parse(event.first, DateTimeFormatter.ISO_ZONED_DATE_TIME)
         val last = LocalDateTime.parse(event.last, DateTimeFormatter.ISO_ZONED_DATE_TIME)
-        val count = min(MAX_OBJECT_COUNT, event.count)
+        val count = min(properties.maxObjectCount, event.count)
 
         val result = (0 until count-1).map {
             TrackCustomEventParams(

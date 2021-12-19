@@ -13,9 +13,7 @@ class Worker (
     val client: BrazeClient,
     val converter: Converter
 ){
-    private val MAX_OBJECT_COUNT = 75
     private val sleepTimeMills = max(2, (60 * 1000 / properties.transferRate).toLong())
-    private val logger = LoggerFactory.getLogger(this::class.java)
 
     fun  handle() {
         var fileCount = 0
@@ -37,6 +35,7 @@ class Worker (
         var errCount = 0
         val inputStream = dataFile.inputStream()
 
+        println("started: ${dataFile.name}")
         val elapsed = measureTimeMillis {
             inputStream.bufferedReader().useLines { lines ->
                 lines.forEach { jsonStr ->
@@ -48,16 +47,11 @@ class Worker (
                         return@forEach
                     }
                     val externalId = profile.external_id
-                    try {
-                        if (properties.uploadAttrs) {
-                            sendAttributes(profile.custom_attributes, externalId)
-                        }
-                        if (properties.uploadEvents) {
-                            sendEvents(profile.custom_events, externalId)
-                        }
-                    } catch (e: Exception) {
-                        logger.error("fatal error at: ${dataFile.path} #$lineNumber")
-                        throw e
+                    if (properties.uploadAttrs) {
+                        sendAttributes(profile.custom_attributes, externalId)
+                    }
+                    if (properties.uploadEvents) {
+                        sendEvents(profile.custom_events, externalId)
                     }
                 }
             }
@@ -79,26 +73,25 @@ class Worker (
 
     private fun sendEvents(events: List<UserEvent>, id: String) {
         var sum = 0
-        var subList = emptyList<UserEvent>()
+        var targetEvents = emptyList<UserEvent>()
         val list = events.sortedBy { it.count }
 
         for (i in list.indices) {
-            val count = min(MAX_OBJECT_COUNT, list[i].count)
+            val count = min(properties.maxObjectCount, list[i].count)
 
-            if ((sum + count) <= MAX_OBJECT_COUNT) {
-                subList += list[i]
+            if ((sum + count) <= properties.maxObjectCount) {
+                targetEvents += list[i]
                 sum += count
             } else {
-                val trackParams = converter.convertUserEventListTolTrackParamsList(subList, id)
+                val trackParams = converter.convertUserEventListTolTrackParamsList(targetEvents, id)
                 track(trackParams)
-
-                subList = listOf(list[i])
+                targetEvents = listOf(list[i])
                 sum = count
             }
         }
 
         if (sum > 0) {
-            val trackParams = converter.convertUserEventListTolTrackParamsList(subList, id)
+            val trackParams = converter.convertUserEventListTolTrackParamsList(targetEvents, id)
             track(trackParams)
         }
     }

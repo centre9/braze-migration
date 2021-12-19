@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 class WebClientProperties {
     var connectTimeout = Duration.ofSeconds(10)!!
     var requestTimeout = Duration.ofSeconds(10)!!
-    var maxConnections: Int = 10000
+    var maxConnections: Int = 20000
     var poolIdleTimeout = Duration.ofMinutes(1)!!
 
     fun createClientConnector(poolName: String, followRedirect: Boolean = false): ClientHttpConnector {
