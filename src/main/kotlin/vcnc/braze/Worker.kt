@@ -1,6 +1,5 @@
 package vcnc.braze
 
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.io.File
 import kotlin.math.max
@@ -17,20 +16,21 @@ class Worker (
 
     fun  handle() {
         var fileCount = 0
+        var accountCount = 0
 
         val dataFiles = createTargetFileList(properties.dataDir, properties.listFilePath)
         dataFiles
             .map { File(it) }
             .filter { it.exists() }
             .forEach { dataFile ->
-                process(dataFile)
+                accountCount += process(dataFile)
                 fileCount++
             }
 
-        println("Total: ${fileCount} files")
+        println("Total: ${fileCount} files, $accountCount accounts inserted")
     }
 
-    private fun process(dataFile: File) {
+    private fun process(dataFile: File): Int {
         var lineNumber = 0
         var errCount = 0
         val inputStream = dataFile.inputStream()
@@ -59,6 +59,8 @@ class Worker (
 
         val seconds = elapsed.toDouble()/1000
         println("finished: ${dataFile.name}, elapsed: $seconds sec, users: $lineNumber, errors: $errCount")
+
+        return (lineNumber - errCount)
     }
 
     private fun track(params: List<TrackParams>) {

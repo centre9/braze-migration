@@ -20,5 +20,5 @@ class BrazeMigrationApplication(
 }
 
 fun main(args: Array<String>) {
-	runApplication<BrazeMigrationApplication>(*args).close()
+	runApplication<BrazeMigrationApplication>(*args)
 }
